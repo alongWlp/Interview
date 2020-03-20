@@ -15,6 +15,7 @@ Redis有五种数据类型，分别是：String、List、Set、Sorted Set、hash
 (1) memcached所有的值均是简单的字符串，redis作为其替代者，支持更为丰富的数据类型，redis支持5种数据类型。<br>
 (2) redis的速度比memcached快很多，因为redis是单进程单线程的，多路复用IO。<br>
 (3) redis可以持久化其数据。<br>
+(4) redis提供主从同步机制，以及Cluster集群部署能力，能够提供高可用服务。
 
 ## 3、Redis有哪几种数据淘汰策略？
 （1）noeviction:返回错误当内存限制达到并且客户端尝试执行会让更多内存被使用的命令（大部分的写入指令，但DEL和几个例外）<br>
