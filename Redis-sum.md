@@ -42,33 +42,13 @@ RDB做镜像全量持久化，AOF做增量持久化。因为RDB会耗费较长�
 （4） Redis主从复制的性能问题，为了主从复制的速度和连接的稳定性，Slave和Master最好在同一个局域网内<br>
 ## 7、 Redis的同步机制
 Redis可以使用主从同步，从从同步。第一次同步时，主节点做一次bgsave，并同时将后续修改操作记录到缓存区buffer，待完成后将RDB文件全量同步到复制节点，复制节点接受完成后将RDB镜像加载到内存。加载完成后，再通知主节点将期间修改的操作记录同步到复制节点进行重放就完成了同步过程。后续的增量数据通过AOF日志同步即可。
-
-
-### 多语言代码高亮 Codes
-
-#### 行内代码 Inline code
-
-
-执行命令：`npm install marked`
-
-#### 缩进风格
-
-即缩进四个空格，也做为实现类似 `<pre>` 预格式化文本 ( Preformatted Text ) 的功能。
-
-    <?php
-        echo "Hello world!";
-    ?>
-预格式化文本：
-
-    | First Header  | Second Header |
-    | ------------- | ------------- |
-    | Content Cell  | Content Cell  |
-    | Content Cell  | Content Cell  |
-
-#### JS代码
-```javascript
-function test() {
-	console.log("Hello world!");
-}
-```
+## 7、 Redis 主从复制，哨兵，集群的区别是什么？
+主从模式强调数据备份读写分离等,复制功能不会阻塞主服务器<br>
+sentinel发现master挂了后，就会从slave中重新选举一个master。哨兵模式强调高可用<br>
+Sentinel 系统用于管理多个 Redis 服务器<br>
+cluster是为了解决单机Redis容量有限的问题，将数据按一定的规则分配到多台机器。集群模式提高并发量。
+1.主从模式：读写分离，备份，一个Master可以有多个Slaves。<br>
+2.哨兵sentinel：监控，自动转移，哨兵发现主服务器挂了后，就会从slave中重新选举一个主服务器。<br>
+3.集群：为了解决单机Redis容量有限的问题，将数据按一定的规则分配到多台机器，内存/QPS不受限于单机，可受益于分布式集群高扩展性。<br>
+哨兵作用于高可用，集群提高并发量
 
