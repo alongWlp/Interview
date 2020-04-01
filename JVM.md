@@ -18,9 +18,4 @@ MdEditor源于Pandao的JavaScript开源项目，开源地址[Editor.md](https://
 
 #### 缩进风格
 
-即缩进四个空格，也做为实现类似 `<pre>` 预格式化文本 ( Preformatted Text ) 的功能。
-
-    <?php
-        jvmd调优;
-    ?>
 
