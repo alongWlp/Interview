@@ -16,5 +16,9 @@ Zero-copy 零拷技术减少拷贝次数<br>
 Batching of Messages 批量量处理。合并小的请求，然后以流的方式进行交互，直顶网络上限。<br>
 Pull 拉模式 使用拉模式进行消息的获取消费，与消费端处理能力相符。<br>
 
-## MQ深入面试题
-## 1、为什么说Redis是单线程的以及Redis为什么这么快？
+## kafka学习笔记
+## 1、kafka高可用架构总结
+**Kafka采用多机备份和消息应答确认方式解决了数据丢失问题，并通过一套失败恢复机制解决服务不可用问题。**
+### 1.1 消息备份机制
+Kafka允许同一个Partition存在多个消息副本(Replica)，每个Partition的副本通常由1个Leader及0个以上的Follower组成，生产者将消息直接发往对应Partition的Leader，Follower会周期地向Leader发送同步请求，Kafka的Leader机制在保障数据一致性地同时降低了消息备份的复杂度。
+
