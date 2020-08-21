@@ -4,11 +4,6 @@
 
 **JVM面试总结**
 ## 基础知识面试总结
-## 1、为什么使用消息队列？
-分析：一个用消息队列的人，不知道为啥用，这就有点尴尬、没有复习这点，很容易被问蒙，然后就开始胡扯了。<br>
-回答：这个问题，咱只答三个最主要的应用场景（不可否认还有掐的，但是只答三个主要的），即以下六个字：解耦、异步、削峰<br>
-## 2、使用了消息队列会有什么缺点？
-垃圾回收：释放垃圾占用的内存空间，防止内存泄露，有效的使用内存中可以使用的内存，对内存堆中已经死亡或者长时间没有使用的对象进行清除和回收。
 
 ## 问题：怎么确认是垃圾？
 
@@ -18,17 +13,11 @@
 String m = new String("jack"); // m是jack字符串的引用
 ```
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/b43256d6-f71b-4c6c-bde2-850353381e2b/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/b43256d6-f71b-4c6c-bde2-850353381e2b/Untitled.png)
-
 ```java
 m=null;//将m置为空，这时jack的引用次数就是0了，在引用计数里，意味着这块内存可以被回收了。
 ```
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/c198973c-3d6f-421b-b1b3-7904d84280ad/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/c198973c-3d6f-421b-b1b3-7904d84280ad/Untitled.png)
-
 可达性分析算法：通过一些引用链（GC ROOTs)的对象做为起点，从这些节点向下探索，搜索走过的路径被称为(Reference Chain)，当一个对象到GC Roots没有任何引用链相连接的时候，则证明该对象是不可达的，就可以进行回收。
-
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/60b5b60b-4a6e-4b6c-95a3-8d4d903b5ba7/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/60b5b60b-4a6e-4b6c-95a3-8d4d903b5ba7/Untitled.png)
 
 在Java中，可以作为GC Root的对象包括以下4种
 
@@ -42,21 +31,16 @@ m=null;//将m置为空，这时jack的引用次数就是0了，在引用计数�
 
 jvm结构
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/6a7f0712-fc97-4136-a3e5-cdb52b960440/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/6a7f0712-fc97-4136-a3e5-cdb52b960440/Untitled.png)
 
 ## 垃圾回收算法：
 
 标记清除算法：先把内存中需要回收的对象进行标记，然后进行回收。这样容易产生内存碎片。
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0145e9af-f95d-4c44-ab37-9d645582f68e/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0145e9af-f95d-4c44-ab37-9d645582f68e/Untitled.png)
 
 复制算法：将内存分为大小相等的两块，每次只使用其中的一块，当这一块内存用完了，就将还存活的对象复制到另一块，然后再把已使用过的内存空间一次清理掉。
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9ecb6671-c031-4d47-91f0-314506faa016/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9ecb6671-c031-4d47-91f0-314506faa016/Untitled.png)
-
 分代回收算法，java堆被分为新生代和老年代。在新生代中又划分了三个区域：Eden空间，To Survivor空间，From Survivor空间。
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/efb4f98d-5d82-4373-892f-20d608351734/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/efb4f98d-5d82-4373-892f-20d608351734/Untitled.png)
 
 新创建的对象会被放在Eden区，当新生代发生GC后，会将Eden区和其中一个survivor区空间的内存复制到另一个survivor中，如果反复几次一直存活，此时对象会被移至老年代。
 
@@ -64,11 +48,8 @@ jvm结构
 
 类的加载指的是，将类的.class二进制文件加载到内存中，将其放在运行时数据区的方法区内，然后在堆区上创建一个java.lang.Class对象，用来封装类在方法区内的数据结构。
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/5b2818d9-e25b-42bc-a7e4-3a8c5bc181b0/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/5b2818d9-e25b-42bc-a7e4-3a8c5bc181b0/Untitled.png)
 
 JVM的类加载主要是通过ClassLoader及其子类来完成的，类的层次和加载顺序如下图所示。
-
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/7efc661d-3b42-4b08-960f-e74cc3afdff1/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/7efc661d-3b42-4b08-960f-e74cc3afdff1/Untitled.png)
 
 1.Bootstarap ClassLoader 负责加载$JAVA_HOME中的jre/lib/rt.jar 里所有的class或Xbootclassoath选项指定的jar包。由C++实现，不是ClassLoader子类。
 
@@ -80,6 +61,50 @@ JVM的类加载主要是通过ClassLoader及其子类来完成的，类的层次
 
 加载过程中会先检查类是否被已加载，检查顺序是自底向上，从Custom ClassLoader到BootStrap ClassLoader逐层检查，只要某个classloader已加载，就视为已加载此类，保证此类只所有ClassLoader加载一次。而加载的顺序是自顶向下，也就是由上层来逐层尝试加载此类。
 
-## 基础知识面试总结
+## JVM调优实际问题
+
+GC优化一般步骤可以概括为：确定目标、优化参数、验收结果。
+
+1、查看gc日志，分析导致gc的原因
+
+2、查看gc后对象的年龄，晋升老年代的情况
+
+3、合理的分配新生代和老年代的大小
+
+4、观察效果
+
+5、重复3、4步骤
+
+极少数据量的数据会晋升到老年代
+
+gc发生的原因全部都是新生代内存不足
+
+为什么增大新生代的大小可以减少gc整体时间？
+
+更重要的是对于虚拟机来说，复制对象的成本要远高于扫描成本
 
 
+## JVM内存结构
+
+### 1 、新生代（Young Generation）：
+大多数对象在新生代中被创建，其中很多对象的生命周期很短。每次新生代的垃圾回收（又称Minor GC）后只有少量对象存活，所以选用复制算法，只需要少量的复制成本就可以完成回收。
+
+新生代内又分三个区：一个Eden区，两个Survivor区（一般而言），大部分对象在Eden区中生成。当Eden区满时，还存活的对象将被复制到两个Survivor区（中的一个）。当这个Survivor区满时，此区的存活且不满足“晋升”条件的对象将被复制到另外一个Survivor区。对象每经历一次Minor GC，年龄加1，达到“晋升年龄阈值”后，被放到老年代，这个过程也称为“晋升”。显然，“晋升年龄阈值”的大小直接影响着对象在新生代中的停留时间，在Serial和ParNew GC两种回收器中，“晋升年龄阈值”通过参数MaxTenuringThreshold设定，默认值为15。
+
+### 2、老年代（Old Generation）：
+
+在新生代中经历了N次垃圾回收后仍然存活的对象，就会被放到年老代，该区域中对象存活率高。老年代的垃圾回收（又称Major GC）通常使用“标记-清理”或“标记-整理”算法。整堆包括新生代和老年代的垃圾回收称为Full GC（HotSpot VM里，除了CMS之外，其它能收集老年代的GC都会同时收集整个GC堆，包括新生代）。
+
+### 3、永久代（Perm Generation）：
+
+主要存放元数据，例如Class、Method的元信息，与垃圾回收要回收的Java对象关系不大。相对于新生代和年老代来说，该区域的划分对垃圾回收影响比较小。
+
+
+ 1. Init-mark初始标记(STW) ，该阶段进行可达性分析，标记GC ROOT能直接关联到的对象，所以很快。 
+ 2. Concurrent-mark并发标记，由前阶段标记过的绿色对象出发，所有可到达的对象都在本阶段中标记。 
+ 3. Remark重标记(STW) ，暂停所有用户线程，重新扫描堆中的对象，进行可达性分析，标记活着的对象。因为并发标记阶段是和用户线程并发执行的过程，所以该过程中可能有用户线程修改某些活跃对象的字段，指向了一个未标记过的对象，如下图中红色对象在并发标记开始时不可达，但是并行期间引用发生变化，变为对象可达，这个阶段需要重新标记出此类对象，防止在下一阶段被清理掉，这个过程也是需要STW的。特别需要注意一点，这个阶段是以新生代中对象为根来判断对象是否存活的。 
+ 4. 并发清理，进行并发的垃圾清理。
+ 
+ 什么时候发生fullGC
+ 
+ 首先，什么时候可能会触发STW的Full GC呢？ 1. Perm空间不足； 2. CMS GC时出现promotion failed和concurrent mode failure（concurrent mode failure发生的原因一般是CMS正在进行，但是由于老年代空间不足，需要尽快回收老年代里面的不再被使用的对象，这时停止所有的线程，同时终止CMS，直接进行Serial Old GC）； 3. 统计得到的Young GC晋升到老年代的平均大小大于老年代的剩余空间； 4. 主动触发Full GC（执行jmap -histo:live [pid]）来避免碎片问题。

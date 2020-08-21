@@ -1,0 +1,59 @@
+# Netty面试总结
+
+## netty常见面试题
+### 1、Netty组件有哪些，分别有什么关联？
+
+Channel
+
+基础的IO操作，如绑定、连接、读写等都依赖于底层网络传输所提供的原语，在Java的网络编程中，基础核心类是Socket，而Netty的Channel提供了一组API，极大地简化了直接与Socket进行操作的复杂性，并且Channel是很多类的父类，如EmbeddedChannel、LocalServerChannel、NioDatagramChannel、NioSctpChannel、NioSocketChannel等。
+
+EventLoop
+
+EventLoop定义了处理在连接过程中发生的事件的核心抽象，之后会进一步讨论，其中Channel、EventLoop、Thread和EventLoopGroup之间的关系如下图所示
+
+ChannelHandler和ChannelPipeline
+
+从应用开发者看来，ChannelHandler是最重要的组件，其中存放用来处理进站和出站数据的用户逻辑。ChannelHandler的方法被网络事件触发，
+ChannelHandler可以用于几乎任何类型的操作，如将数据从一种格式转换为另一种格式或处理抛出的异常。例如，其子接口ChannelInboundHandler，接受进站的事件和数据以便被用户定义的逻辑处理，或者当响应所连接的客户端时刷新ChannelInboundHandler的数据。
+
+ChannelPipeline为ChannelHandler链提供了一个容器并定义了用于沿着链传播入站和出站事件流的API。当创建Channel时，会自动创建一个附属的ChannelPipeline。
+
+Bootstrap 和 ServerBootstrap
+
+Netty的引导类应用程序网络层配置提供容器，其涉及将进程绑定到给定端口或连接一个进程到在指定主机上指定端口上运行的另一进程。引导类分为客户端引导Bootstrap和服务端引导ServerBootstrap。
+
+###  2、说说Netty的执行流程？
+创建ServerBootStrap实例
+
+设置并绑定Reactor线程池：EventLoopGroup，EventLoop就是处理所有注册到本线程的Selector上面的Channel
+
+设置并绑定服务端的channel
+
+创建处理网络事件的ChannelPipeline和handler，网络时间以流的形式在其中流转，handler完成多数的功能定制：比如编解码 SSl安全认证
+绑定并启动监听端口
+
+当轮训到准备就绪的channel后，由Reactor线程：NioEventLoop执行pipline中的方法，最终调度并执行channelHandler
+
+
+### 3、Netty高性能体现在哪些方面？
+
+传输：
+
+IO模型在很大程度上决定了框架的性能，相比于bio，netty建议采用异步通信模式，因为nio一个线程可以并发处理N个客户端连接和读写操作，这从根本上解决了传统同步阻塞IO一连接一线程模型，架构的性能、弹性伸缩能力和可靠性都得到了极大的提升。正如代码中所示，使用的是NioEventLoopGroup和NioSocketChannel来提升传输效率。
+
+协议：采用什么样的通信协议，对系统的性能极其重要，netty默认提供了对Google Protobuf的支持，也可以通过扩展Netty的编解码接口，用户可以实现其它的高性能序列化框架。
+
+线程：netty使用了Reactor线程模型，但Reactor模型不同，对性能的影响也非常大，下面介绍常用的Reactor线程模型有三种，分别如下：
+
+Reactor单线程模型：单线程模型的线程即作为NIO服务端接收客户端的TCP连接，又作为NIO客户端向服务端发起TCP连接，即读取通信对端的请求或者应答消息，又向通信对端发送消息请求或者应答消息。理论上一个线程可以独立处理所有IO相关的操作，但一个NIO线程同时处理成百上千的链路，性能上无法支撑，即便NIO线程的CPU负荷达到100%，也无法满足海量消息的编码、解码、读取和发送，又因为当NIO线程负载过重之后，处理速度将变慢，这会导致大量客户端连接超时，超时之后往往会进行重发，这更加重了NIO线程的负载，最终会导致大量消息积压和处理超时，NIO线程会成为系统的性能瓶颈。
+
+Reactor多线程模型：有专门一个NIO线程用于监听服务端，接收客户端的TCP连接请求；网络IO操作(读写)由一个NIO线程池负责，线程池可以采用标准的JDK线程池实现。但百万客户端并发连接时，一个nio线程用来监听和接受明显不够，因此有了主从多线程模型。
+
+主从Reactor多线程模型：利用主从NIO线程模型，可以解决1个服务端监听线程无法有效处理所有客户端连接的性能不足问题，即把监听服务端，接收客户端的TCP连接请求分给一个线程池。因此，在代码中可以看到，我们在server端选择的就是这种方式，并且也推荐使用该线程模型。在启动类中创建不同的EventLoopGroup实例并通过适当的参数配置，就可以支持上述三种Reactor线程模型。
+
+### 4、Netty的零拷贝提体现在哪里，与操作系统上的有什么区别？
+Zero-copy就是在操作数据时, 不需要将数据buffer从一个内存区域拷贝到另一个内存区域。 少了一次内存的拷贝,CPU的效率就得到的提升。在OS层面上的Zero-copy 通常指避免在 用户态(User-space) 与 内核态(Kernel-space)之间来回拷贝数据。Netty的Zero-copy完全是在用户态(Java 层面)的, 更多的偏向于优化数据操作。
+
+Netty的接收和发送ByteBuffer采用DIRECT BUFFERS，使用堆外直接内存进行Socket读写，不需要进行字节缓冲区的二次拷贝。如果使用传统的堆内存（HEAP BUFFERS）进行Socket读写，JVM会将堆内存Buffer拷贝一份到直接内存中，然后才写入Socket中。相比于堆外直接内存，消息在发送过程中多了一次缓冲区的内存拷贝。
+Netty提供了组合Buffer对象，可以聚合多个ByteBuffer对象，用户可以像操作一个Buffer那样方便的对组合Buffer进行操作，避免了传统通过内存拷贝的方式将几个小Buffer合并成一个大的Buffer。
+Netty的文件传输采用了transferTo方法，它可以直接将文件缓冲区的数据发送到目标Channel，避免了传统通过循环write方式导致的内存拷贝问题。
